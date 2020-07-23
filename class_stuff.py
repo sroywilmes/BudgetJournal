@@ -14,22 +14,52 @@ class Expense():
     def __sub__(self, other):
         return self.amount - other.amount
 
+class Category():
+
+    def __init__(self, name):
+        self.name = name
+        self.limit = 0
+    def __init__(self, name, limit):
+        self.name = name
+        self.limit = limit
+
+    def __str__(self):
+        return self.name
+
 class Database():
 
     expenses = []
     categories = []
 
     def __init__(self, expense_filename, category_filename):
-
         self.expense_filename = expense_filename
         self.category_filename = category_filename
-        pickle_in = open(expense_filename,"rb")
-        self.expenses = pickle.load(pickle_in)
-        pickle_in.close()
+        try:
+            pickle_in = open(expense_filename,"rb")
+            self.expenses = pickle.load(pickle_in)
+            pickle_in.close()
 
-        pickle_in = open(category_filename, "rb")
-        self.categories = pickle.load(pickle_in)
-        pickle_in.close()
+            pickle_in = open(category_filename, "rb")
+            self.categories = pickle.load(pickle_in)
+            pickle_in.close()
+
+        except:
+            pickle_out = open(expense_filename, "wb")
+            pickle.dump(self.expenses, pickle_out)
+            pickle_out.close()
+
+            pickle_out = open(category_filename, "wb")
+            pickle.dump(self.categories, pickle_out)
+            pickle_out.close()
+
+            pickle_in = open(expense_filename, "rb")
+            self.expenses = pickle.load(pickle_in)
+            pickle_in.close()
+
+            pickle_in = open(category_filename, "rb")
+            self.categories = pickle.load(pickle_in)
+            pickle_in.close()
+
 
     def save(self, expense_filename, category_filename):
         pickle_out = open(expense_filename,"wb")
@@ -39,7 +69,6 @@ class Database():
         pickle_out = open(category_filename, "wb")
         pickle.dump(self.categories, pickle_out)
         pickle_out.close()
-
 
 
 
