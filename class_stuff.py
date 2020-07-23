@@ -1,7 +1,7 @@
 import pickle
-
+import datetime
 class Expense():
-
+    date = datetime.date.today()
     def __init__(self, amount, category, date, description):
         self.amount = amount
         self.category = category
