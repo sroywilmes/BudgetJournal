@@ -28,17 +28,25 @@ def root_setup(root, myDatabase):
 
 def print_expenses(myDatabase):
     window_display_expenses = Tk()
+    window_display_expenses.geometry("800x400")
+    Label(window_display_expenses, text = "Amount",width = 10).grid(row=0,column=0)
+    Label(window_display_expenses, text="Category",width = 10).grid(row=0, column=1)
+    Label(window_display_expenses, text="Date",width = 10).grid(row=0, column=2)
     for i in range(len(myDatabase.expenses)):
-        amt = myDatabase.expenses[i].amount
         cat = myDatabase.expenses[i].category
         date = myDatabase.expenses[i].date
         if myDatabase.expenses[i].description == '\n':
             desc = "None"
         else:
             desc = myDatabase.expenses[i].description
-        expense_data_string = str(i) + "  Amount: $" + amt + "  Category: " + cat + "  Date: " +  date + "  Description: " +  desc
-        expense_data = Label(window_display_expenses, text = expense_data_string)
-        expense_data.pack()
+        amtLabel = Label(window_display_expenses,text="$" + myDatabase.expenses[i].amount,width = 10)
+        catLabel = Label(window_display_expenses, text=myDatabase.expenses[i].category,width = 10)
+        dateLabel = Label(window_display_expenses, text=myDatabase.expenses[i].date,width = 10)
+
+        amtLabel.grid(row=i+1,column=0)
+        catLabel.grid(row=i+1, column=1)
+        dateLabel.grid(row=i+1, column=2)
+
 
 
 def new_expense(myDatabase):
@@ -127,8 +135,13 @@ def edit_expense(myDatabase):
 def category_tally(myDatabase, month, year, category):
     total = 0
     for i in range(len(myDatabase.expenses)):
-        if myDatabase.expenses[i].category == category and myDatabase.expenses[i].date.month == month and myDatabase.expenses[i].date.year == year:
-            total += myDatabase.expenses[i]
+        print("Month:" +  str(month))
+        print("date[0]:" + str(myDatabase.expenses[i].date[0]))
+        print("Category: " + str(category))
+        print(".category" + myDatabase.expenses[i].category)
+        if str(myDatabase.expenses[i].category) == str(category) and str(myDatabase.expenses[i].date[0]) == str(month):
+            total += int(myDatabase.expenses[i].amount)
+    print(total)
     return total
 
 def number_to_month(number):
@@ -158,10 +171,23 @@ def number_to_month(number):
         return 'December'
     else:
         return 'n2m conversion error'
+
+#Defining functions to be used for buttons
+def next_month():
+    global display_date
+    one_day = timedelta(days=1)
+    display_date += one_day *30
+
+def prev_month():
+    global display_date
+    one_day = timedelta(days=1)
+    display_date -= one_day * 30
+
 def view_month(myDatabase):
     #initializing date and timedelta object
+    global display_date
     display_date = datetime.today()
-    one_day = timedelta(days=1)
+
 
     #basic window setup
     window_view_month = Tk()
@@ -170,20 +196,22 @@ def view_month(myDatabase):
     window_view_month.geometry("250x200")
 
     # label for the month header
-    month_label = Label(window_view_month, text=number_to_month(display_date.month))
+    month_label = Label(window_view_month, width=10,text=number_to_month(display_date.month))
 
-    #Defining functions to be used for buttons
-    def next_month():
-        display_date += one_day * 31
+    def next():
+        next_month()
         display_month()
 
-    def prev_month():
-        display_date -= one_day * 27
+    def prev():
+        prev_month()
         display_month()
+
 
     #function to display the current month
     def display_month():
         month_label.config(text=number_to_month(display_date.month))
+        month_label.update()
+        print("test")
         for i in range(len(myDatabase.categories)):
             category_label = Label(window_view_month, text=str(myDatabase.categories[i]) + ":")
             amount_string = "$" + str(category_tally(myDatabase, display_date.month, display_date.year, myDatabase.categories[i])) + " / $" + str(myDatabase.categories[i].limit)
@@ -192,8 +220,8 @@ def view_month(myDatabase):
             category_label.grid(row=i+1,column=0)
             amount_label.grid(row=i + 1, column=1)
 
-    next_button = Button(window_view_month, text = ">", command=next_month())
-    prev_button = Button(window_view_month, text = "<", command=prev_month())
+    next_button = Button(window_view_month, text = ">", command=next)
+    prev_button = Button(window_view_month, text = "<", command=prev)
 
     #displaying things on screen
     display_month()
