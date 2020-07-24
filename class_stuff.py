@@ -2,7 +2,13 @@ import pickle
 import datetime
 class Expense():
     date = datetime.date.today()
-    def __init__(self, amount, category, date, description):
+    def __init__(self):
+        self.amount=0
+        self.category=Category(0,0)
+        self.date=datetime()
+        self.description = ''
+
+    def __init__(self, amount=None, category=None, date=None, description=None):
         self.amount = amount
         self.category = category
         self.date = date
@@ -13,6 +19,17 @@ class Expense():
 
     def __sub__(self, other):
         return self.amount - other.amount
+    def __str__(self):
+        return '${:8}'.format(str(self.amount)) + \
+               '| {:20}'.format(str(self.category)) + \
+               '| {:8}'.format(str(self.date)) + \
+               '| {:<}'.format(str(self.description))
+    def edit_expense(self, amount, category, date, description):
+        self.amount = amount
+        self.category = category
+        self.date = date
+        self.description = description
+
 
 class Category():
 
@@ -25,6 +42,13 @@ class Category():
 
     def __str__(self):
         return self.name
+    def compare(self, other):
+        if self.name == other.name and self.limit == other.limit:
+            return True
+        return False
+    def edit_category(self, name, limit):
+        self.name = name
+        self.limit = limit
 
 class Database():
 
@@ -70,8 +94,11 @@ class Database():
         pickle.dump(self.categories, pickle_out)
         pickle_out.close()
 
+    def delete_expense(self, index):
+        self.expenses.pop(index)
 
-
+    def delete_category(self, index):
+        self.categories.pop(index)
 
 
 
