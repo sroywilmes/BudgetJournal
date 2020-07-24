@@ -20,8 +20,8 @@ class Expense():
     def __sub__(self, other):
         return self.amount - other.amount
     def __str__(self):
-        return '${:8}'.format(str(self.amount)) + \
-               '| {:20}'.format(str(self.category)) + \
+        return '${:10}'.format(str(self.amount)) + \
+               '| {:27}'.format(str(self.category)) + \
                '| {:8}'.format(str(self.date)) + \
                '| {:<}'.format(str(self.description))
     def edit_expense(self, amount, category, date, description):
@@ -36,9 +36,10 @@ class Category():
     def __init__(self, name):
         self.name = name
         self.limit = 0
-    def __init__(self, name, limit):
+    def __init__(self, name, limit, index):
         self.name = name
         self.limit = limit
+        self.index = index
 
     def __str__(self):
         return self.name
@@ -100,6 +101,9 @@ class Database():
     def delete_category(self, index):
         self.categories.pop(index)
 
+    def sort_expenses_amount(self):
+        #THIS FUNCTION IS THE NEXT PROJECT
+        sorted(self.expenses, key=lambda expense: float(expense.amount))
 
 
 
