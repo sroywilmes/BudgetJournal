@@ -13,9 +13,9 @@ def root_setup(root, myDatabase):
     root.geometry("800x600")
 
     #defining buttons
-    button_new_expense = Button(root,padx = 10, pady = 5, text="Enter new expense", width=20, command=lambda: new_expense(myDatabase))
-    button_edit_expense = Button(root, padx=10, pady=5, text="Edit Expense", width=20, command=lambda: choose_expense(myDatabase))
-    button_display_expenses = Button(root,padx = 10, pady = 5, text="Display expenses", width=20, command=lambda: display_expenses(myDatabase))
+    button_new_expense = Button(root,padx = 10, pady = 5, text="New expense", width=20, command=lambda: new_expense(myDatabase))
+    button_edit_expense = Button(root, padx=10, pady=5, text="List Expense", width=20, command=lambda: choose_expense(myDatabase))
+    #button_display_expenses = Button(root,padx = 10, pady = 5, text="Display expenses", width=20, command=lambda: display_expenses(myDatabase))
     button_new_category = Button(root,padx = 10, pady = 5, text="New Category", width=20, command=lambda: new_category(myDatabase))
     button_edit_category = Button(root,padx = 10, pady = 5, text="Edit Category", width=20, command=lambda: choose_category(myDatabase))
     button_view_month = Button(root,padx = 10, pady = 5, text="View Month", width=20, command=lambda: view_month(myDatabase))
@@ -28,7 +28,7 @@ def root_setup(root, myDatabase):
     #displaying buttons
     button_new_expense.grid(row=0, column=0)
     button_edit_expense.grid(row=1,column=0)
-    button_display_expenses.grid(row=2, column=0)
+    #button_display_expenses.grid(row=2, column=0)
     button_new_category.grid(row=3, column=0)
     button_edit_category.grid(row=4,column=0)
     button_view_month.grid(row=5,column=0)
@@ -91,20 +91,52 @@ def choose_expense(myDatabase):
     window_choose_expense = Tk()
     window_choose_expense.title("Choose Expense")
     window_choose_expense.iconbitmap('icon_new_expense.ico')
-    window_choose_expense.geometry("710x400")
+    window_choose_expense.geometry("1000x800")
 
     #DEFINING BUTTONS/LABELS/FIELDS ON SCREEN
     #defining the header
-    header_text = ' {:8}'.format("Amount") + \
-                 '| {:20}'.format("Category") + \
-                 '| {:8}'.format("Date") + \
-                 '| {:<}'.format("Decription")
-    header_label = Label(window_choose_expense, text= header_text, font=("Courier New", 8), anchor=W,width=100)
+    header_list = ["Amount","Category","Date", "Description"]
+    i=0
+    def push_amount_button(myDatabase):
+        myDatabase.sort_expenses_amount()
+        window_choose_expense.destroy()
+        choose_expense(myDatabase)
 
+
+    for i in range(len(header_list)):
+        print(i)
+
+        if i == 0:
+            print("Amt")
+            my_width = 10 #Amount width
+            header_sort_button = Button(window_choose_expense, text=header_list[i],
+                                        command=lambda: push_amount_button(myDatabase),
+                                        width=my_width)
+        elif i == 1:
+            my_width = 30 # Category Width
+            header_sort_button = Button(window_choose_expense, text=header_list[i],
+                                        #command=lambda: push_header_button(myDatabase, i),
+                                        width=my_width)
+        elif i == 2:
+            my_width = 10# Date Width
+            header_sort_button = Button(window_choose_expense, text=header_list[i],
+                                        #command=lambda: push_header_button(myDatabase, i),
+                                        width=my_width)
+        elif i == 3:
+            my_width = 80  # Description Width
+            header_sort_button = Button(window_choose_expense, text=header_list[i],
+                                        #command=lambda: push_header_button(myDatabase, i),
+                                        width=my_width)
+
+        header_sort_button.grid(row=0,column=i)
+
+
+
+    print(i)
     #Defining the option menu to select the choice
     expense_choice = StringVar()
     expense_strings = []
-    expense_menu = Listbox(window_choose_expense, width=100, font=('Courier New', 8))
+    expense_menu = Listbox(window_choose_expense, width=121, font=('Courier New', 11),height=len(myDatabase.expenses))
     for i in range(len(myDatabase.expenses)):
         expense_strings.append(str(myDatabase.expenses[i]))
         expense_menu.insert(i, expense_strings[i])
@@ -123,10 +155,15 @@ def choose_expense(myDatabase):
                           text="Edit Chosen Expense",
                           command=lambda: push_enter_button(myDatabase))
 
+    exit_button = Button(window_choose_expense,
+                         text="Exit",
+                         command=window_choose_expense.destroy)
+
     #Displaying everything on screen
-    header_label.grid(row=0, column=0)
+    #header_label.grid(row=0, column=0)
     expense_menu.grid(row=1,column=0,columnspan=10)
     enter_button.grid(row=2,column=0)
+    exit_button.grid(row=2,column=1)
 
 #edit expense uses the same window code as new_expense but instead of making a new one and appending it, it edits an existing one
 def edit_expense(myDatabase, expense, chosen_expense_index):
@@ -188,24 +225,28 @@ def edit_expense(myDatabase, expense, chosen_expense_index):
 
 def display_expenses(myDatabase):
     window_display_expenses = Tk()
+    window_display_expenses.title("Display Expenses")
     window_display_expenses.geometry("800x400")
-    Label(window_display_expenses, text = "Amount",width = 10).grid(row=0,column=0)
-    Label(window_display_expenses, text="Category",width = 10).grid(row=0, column=1)
-    Label(window_display_expenses, text="Date",width = 10).grid(row=0, column=2)
+
+    Label(window_display_expenses, text = "Amount",width = 10, anchor=W).grid(row=0,column=0)
+    Label(window_display_expenses, text="Category",width = 20, anchor=W).grid(row=0, column=1)
+    Label(window_display_expenses, text="Date",width = 10, anchor=W).grid(row=0, column=2)
+    Label(window_display_expenses, text="Description", width=30, anchor=W).grid(row=0, column=3)
     for i in range(len(myDatabase.expenses)):
         cat = myDatabase.expenses[i].category
         date = myDatabase.expenses[i].date
-        if myDatabase.expenses[i].description == '\n':
+        if myDatabase.expenses[i].description == '':
             desc = "None"
         else:
             desc = myDatabase.expenses[i].description
-        amtLabel = Label(window_display_expenses,text="$" + myDatabase.expenses[i].amount,width = 10)
-        catLabel = Label(window_display_expenses, text=myDatabase.expenses[i].category,width = 10)
-        dateLabel = Label(window_display_expenses, text=myDatabase.expenses[i].date,width = 10)
-
+        amtLabel = Label(window_display_expenses,text="$" + myDatabase.expenses[i].amount,width = 10, anchor=W)
+        catLabel = Label(window_display_expenses, text=myDatabase.expenses[i].category,width = 20, anchor=W)
+        dateLabel = Label(window_display_expenses, text=myDatabase.expenses[i].date,width = 10, anchor=W)
+        descLabel = Label(window_display_expenses, text=myDatabase.expenses[i].description,width = 30, anchor=W)
         amtLabel.grid(row=i+1,column=0)
         catLabel.grid(row=i+1, column=1)
         dateLabel.grid(row=i+1, column=2)
+        descLabel.grid(row=i+1, column=3)
 
 
 
@@ -220,7 +261,7 @@ def new_category(myDatabase):
     name_field = Entry(window_new_category, width=13, borderwidth=2)
     limit_field = Entry(window_new_category, width=13, borderwidth=2)
     def cat_entry():
-        new_cat = Category(name_field.get(), limit_field.get())
+        new_cat = Category(name_field.get(), limit_field.get(), len(myDatabase.categories))
         myDatabase.categories.append(new_cat)
         window_new_category.destroy()
     enter_button = Button(window_new_category, text="Enter", command=cat_entry)
@@ -297,6 +338,9 @@ def edit_category(myDatabase, chosen_category_index):
     limit_field = Entry(window_edit_category, width=13, borderwidth=2)
     limit_field.insert(INSERT, str(myDatabase.categories[chosen_category_index].limit))
 
+
+    index_field = Entry(window_edit_category, width=13,borderwidth=2)
+    index_field.insert
     def push_edit_category_button(myDatabase):
         old_category = myDatabase.categories[chosen_category_index]
         myDatabase.categories[chosen_category_index].edit_category(name_field.get(), limit_field.get())
@@ -310,8 +354,8 @@ def edit_category(myDatabase, chosen_category_index):
     def push_delete_category_button(myDatabase):
         myDatabase.delete_category(chosen_category_index)
         window_edit_category.destroy()
-        choose_category()
-    delete_category_button = Button(window_edit_category, text="DELETE", command=lambda: push_edit_category_button(myDatabase))
+        choose_category(myDatabase)
+    delete_category_button = Button(window_edit_category, text="DELETE", command=lambda: push_delete_category_button(myDatabase))
 
     # displaying the button/fields on screen
     name_label = Label(window_edit_category, text="Name of category:").grid(row=0, column=0)
@@ -319,16 +363,16 @@ def edit_category(myDatabase, chosen_category_index):
     limit_label = Label(window_edit_category, text="Monthly limit: $").grid(row=1, column=0)
     limit_field.grid(row=1, column=1)
     edit_category_button.grid(row=2)
+    delete_category_button.grid(row=2,column=1)
 
 
 #The category tally function is be used in the view month function for each category
 def category_tally(myDatabase, month, year, category):
-    total = 0
+    total = 0.0
     for i in range(len(myDatabase.expenses)):
         if str(myDatabase.expenses[i].category) == str(category) and str(myDatabase.expenses[i].date[0]) == str(month):
-            total += eval(myDatabase.expenses[i].amount)
+            total += float(myDatabase.expenses[i].amount)
     total_string = round(total, 2)
-    print(total_string)
     return total_string
 
 #used in the view month category (there may already be something like this built in somewhere *shrug*)
@@ -381,7 +425,7 @@ def view_month(myDatabase):
     window_view_month = Tk()
     window_view_month.title("View Month")
     window_view_month.iconbitmap('icon_new_expense.ico')
-    window_view_month.geometry("250x200")
+    window_view_month.geometry("400x400")
 
     # label for the month header
     month_label = Label(window_view_month, width=10,text=number_to_month(display_date.month))
@@ -394,24 +438,54 @@ def view_month(myDatabase):
         prev_month()
         display_month()
 
+    header_list = ["Category", "Spent this month", "Limit","Percentage"]
+    for i in range(len(header_list)):
+        header_string = header_list[i]
+        header_label = Label(window_view_month, text=header_string)
+        header_label.grid(row=1,column=i+1)
 
     #function to display the current month
     def display_month():
         month_label.config(text=number_to_month(display_date.month))
         month_label.update()
-        for i in range(len(myDatabase.categories)):
-            category_label = Label(window_view_month, text=str(myDatabase.categories[i]) + ":")
-            tally_string = "$" + str(category_tally(myDatabase, display_date.month, display_date.year, myDatabase.categories[i]))
-            limit_string = str(myDatabase.categories[i].limit)
-            if limit_string != '':
-                tally_string += " / $" + limit_string
-            amount_label = Label(window_view_month, text=tally_string,width=10)
 
-            category_label.grid(row=i+1,column=1)
-            amount_label.grid(row=i + 1, column=2)
+        #First we count up the total expenses for the month to be used for percentages
+        category_count = 0
+        total = 0.0
+        for i in range(len(myDatabase.expenses)):
+            total += float(myDatabase.expenses[i].amount)
+        total_header = Label(window_view_month, text="Total Spent: $" + str(round(total, 2)))
+
+
+        for i in range(len(myDatabase.categories)):
+            category_label = Label(window_view_month, text=str(myDatabase.categories[i]) + ":",width=10)
+            tally = category_tally(myDatabase, display_date.month, display_date.year, myDatabase.categories[i])
+            tally_string = "$" + str(tally)
+            tally_label = Label(window_view_month,text=tally_string,width=15)
+            limit_string = "$" + str(myDatabase.categories[i].limit)
+            if limit_string != '':
+                limit_label = Label(window_view_month,text=limit_string,width=15)
+            else:
+                limit_label = Label(window_view_month,text='',width=15)
+
+            percentage = (float(tally) / total) * 100
+            percentage_label = Label(window_view_month, text=str(round(percentage, 1)) + "%",width=10)
+
+
+            category_label.grid(row=i+2,column=1)
+            tally_label.grid(row=i+2,column=2)
+            limit_label.grid(row=i+2, column=3)
+            percentage_label.grid(row=i+2,column=4)
+
+            category_count += 1
+
+        total_header.grid(row=category_count + 2, columnspan=5)
+
+
 
     next_button = Button(window_view_month, text = ">", command=next)
     prev_button = Button(window_view_month, text = "<", command=prev)
+
 
     #displaying things on screen
     display_month()
