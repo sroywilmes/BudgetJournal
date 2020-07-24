@@ -405,10 +405,10 @@ def view_month(myDatabase):
             limit_string = str(myDatabase.categories[i].limit)
             if limit_string != '':
                 tally_string += " / $" + limit_string
-            amount_label = Label(window_view_month, text=tally_string)
+            amount_label = Label(window_view_month, text=tally_string,width=10)
 
-            category_label.grid(row=i+1,column=0)
-            amount_label.grid(row=i + 1, column=1)
+            category_label.grid(row=i+1,column=1)
+            amount_label.grid(row=i + 1, column=2)
 
     next_button = Button(window_view_month, text = ">", command=next)
     prev_button = Button(window_view_month, text = "<", command=prev)
@@ -416,5 +416,5 @@ def view_month(myDatabase):
     #displaying things on screen
     display_month()
     prev_button.grid(row=0,column=0)
-    month_label.grid(row=0,column=1)
-    next_button.grid(row=0,column=2)
+    month_label.grid(row=0,column=1,columnspan=2)
+    next_button.grid(row=0,column=3)
