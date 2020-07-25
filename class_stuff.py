@@ -4,7 +4,7 @@ class Expense():
     date = datetime.date.today()
     def __init__(self):
         self.amount=0
-        self.category=Category(0,0)
+        self.category
         self.date=datetime()
         self.description = ''
 
@@ -19,6 +19,7 @@ class Expense():
 
     def __sub__(self, other):
         return self.amount - other.amount
+
     def __str__(self):
         return '${:10}'.format(str(self.amount)) + \
                '| {:27}'.format(str(self.category)) + \
@@ -30,6 +31,9 @@ class Expense():
         self.date = date
         self.description = description
 
+    def convert_date(self):
+        new_date = self.date.split("/")
+        self.date = datetime.date(int(new_date[2]),int(new_date[0]),int(new_date[1]))
 
 class Category():
 
@@ -102,10 +106,22 @@ class Database():
         self.categories.pop(index)
 
     def sort_expenses_amount(self):
-        #THIS FUNCTION IS THE NEXT PROJECT
-        sorted(self.expenses, key=lambda expense: float(expense.amount))
+        self.expenses = sorted(self.expenses, key=lambda expense: float(expense.amount))
 
+    def sort_expenses_category(self):
+        self.expenses = sorted(self.expenses, key=lambda expense: expense.category)
 
+    def sort_expenses_date(self):
+        self.expenses = sorted(self.expenses, key=lambda expense: expense.date)
+
+    def sort_expenses_description(self):
+        self.expenses = sorted(self.expenses, key=lambda expense: expense.description)
+
+    def convert_expense_dates(self):
+        for i in range(len(self.expenses)):
+            print(type(self.expenses[i].date))
+            if type(self.expenses[i].date) == str:
+                self.expenses[i].convert_date()
 
 
 
