@@ -1,10 +1,14 @@
-from tkinter import *
+from tkinter import *                   # GUI
 from tkinter import ttk
-from tkcalendar import *
-from class_stuff import *
-from datetime import datetime
-from datetime import timedelta
-from decimal import *
+from tkcalendar import *                # date selection interface
+from datetime import datetime           # date selection
+from datetime import timedelta          # date selection
+from matplotlib import pyplot as plt    # graphs
+from matplotlib import style            # graphs
+from PIL import *                       # display the graphs within the GUI
+import numpy as np                      #
+from decimal import *                   #
+from class_stuff import *               # Defined classes (Database, Category, Expense)
 
 def root_setup(root, myDatabase):
     #basic window setup
@@ -34,9 +38,23 @@ def root_setup(root, myDatabase):
     button_view_month.grid(row=5,column=0)
     button_save_and_exit.grid(row=6,column=0)
 
+def construct_graph(myDatabase):
+
+    for i in range(len(myDatabase.expenses)):
+        print(type(myDatabase.expenses[i].date))
+
+    # myDatabase.sort_expenses_date()
+    # dates = []
+    # amounts = []
+    # for i in range(len(myDatabase.expenses)):
+    #     dates.append(myDatabase.expenses[i].date)
+    #     amounts.append(float(myDatabase.expenses[i].amount))
+    # plt.plot(dates, amounts)
+    #
+    # plt.show()
 
 def new_expense(myDatabase):
-    now = datetime.now()
+    today = datetime.datetime.now()
     #basic window setup
     window_new_expense = Tk()
     window_new_expense.title("New Expense")
@@ -60,12 +78,12 @@ def new_expense(myDatabase):
     description_entry_field_label = Label(window_new_expense, text="Enter a description of the expense if necessary:")
 
     #Date Entry Widget for the date
-    date_entry = Calendar(window_new_expense, selectmode="day", year=now.year, month=now.month, day=now.day)
+    date_entry = Calendar(window_new_expense, selectmode="day", year=today.year, month=today.month, day=today.day)
 
     #Enter Button
     def exp_entry():
         new_expense = Expense(amount_entry_field.get(), category_drop.get(), date_entry.get_date(), description_entry_field.get('1.0', END))
-        myDatabase.expenses.append(new_expense)
+        myDatabase.expenses.append(new_expense.convert_date())
         window_new_expense.destroy()
     enter_button = Button(window_new_expense, text="Enter", command=exp_entry)
 
@@ -102,6 +120,21 @@ def choose_expense(myDatabase):
         window_choose_expense.destroy()
         choose_expense(myDatabase)
 
+    def push_category_button(myDatabase):
+        myDatabase.sort_expenses_category()
+        window_choose_expense.destroy()
+        choose_expense(myDatabase)
+
+    def push_date_button(myDatabase):
+        myDatabase.sort_expenses_date()
+        window_choose_expense.destroy()
+        choose_expense(myDatabase)
+
+    def push_description_button(myDatabase):
+        myDatabase.sort_expenses_description()
+        window_choose_expense.destroy()
+        choose_expense(myDatabase)
+
 
     for i in range(len(header_list)):
         print(i)
@@ -115,17 +148,17 @@ def choose_expense(myDatabase):
         elif i == 1:
             my_width = 30 # Category Width
             header_sort_button = Button(window_choose_expense, text=header_list[i],
-                                        #command=lambda: push_header_button(myDatabase, i),
+                                        command=lambda: push_category_button(myDatabase),
                                         width=my_width)
         elif i == 2:
             my_width = 10# Date Width
             header_sort_button = Button(window_choose_expense, text=header_list[i],
-                                        #command=lambda: push_header_button(myDatabase, i),
+                                        command=lambda: push_date_button(myDatabase),
                                         width=my_width)
         elif i == 3:
             my_width = 80  # Description Width
             header_sort_button = Button(window_choose_expense, text=header_list[i],
-                                        #command=lambda: push_header_button(myDatabase, i),
+                                        command=lambda: push_description_button(myDatabase),
                                         width=my_width)
 
         header_sort_button.grid(row=0,column=i)
@@ -133,7 +166,7 @@ def choose_expense(myDatabase):
 
 
     print(i)
-    #Defining the option menu to select the choice
+    #Defining the large list menu to select the expense
     expense_choice = StringVar()
     expense_strings = []
     expense_menu = Listbox(window_choose_expense, width=121, font=('Courier New', 11),height=len(myDatabase.expenses))
