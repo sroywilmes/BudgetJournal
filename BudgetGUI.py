@@ -6,8 +6,6 @@ from datetime import timedelta          # date selection
 from matplotlib import pyplot as plt    # graphs
 from matplotlib import style            # graphs
 from PIL import *                       # display the graphs within the GUI
-import numpy as np                      #
-from decimal import *                   #
 from class_stuff import *               # Defined classes (Database, Category, Expense)
 
 def root_setup(root, myDatabase):
