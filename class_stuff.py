@@ -1,5 +1,6 @@
 import pickle
 import datetime
+from datetime import timedelta
 class Expense():
     date = datetime.date.today()
     def __init__(self):
@@ -20,21 +21,24 @@ class Expense():
     def __sub__(self, other):
         return self.amount - other.amount
 
-    def __str__(self):
-        return '${:10}'.format(str(self.amount)) + \
-               '| {:27}'.format(str(self.category)) + \
-               '| {:8}'.format(str(self.date)) + \
+    def get_list_string(self):
+        return '| ${:>8.2f}'.format(self.amount) + \
+               '| {:25}'.format(str(self.category)) + \
+               '| {:14}'.format(self.date.strftime("%b %d %Y")) + \
                '| {:<}'.format(str(self.description))
+
     def edit_expense(self, amount, category, date, description):
         self.amount = amount
         self.category = category
         self.date = date
         self.description = description
 
-    def convert_date(self):
+    def date_string_to_datetime(self):
         new_date = self.date.split("/")
-        self.date = datetime.date(int(new_date[2]),int(new_date[0]),int(new_date[1]))
+        self.date = datetime.date(int(new_date[2]) + 2000,int(new_date[0]),int(new_date[1]))
 
+    def amount_string_to_float(self):
+        self.amount = round(float(self.amount),2)
 class Category():
 
     def __init__(self, name):
@@ -117,11 +121,12 @@ class Database():
     def sort_expenses_description(self):
         self.expenses = sorted(self.expenses, key=lambda expense: expense.description)
 
-    def convert_expense_dates(self):
+
+
+    def convert_expense_amounts(self):
         for i in range(len(self.expenses)):
-            print(type(self.expenses[i].date))
-            if type(self.expenses[i].date) == str:
-                self.expenses[i].convert_date()
+            if type(self.expenses[i].amount) == str:
+                self.expenses[i].amount_string_to_float()
 
 
 
