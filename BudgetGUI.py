@@ -39,7 +39,7 @@ def root_setup(root, myDatabase):
 def construct_graph(myDatabase):
 
     for i in range(len(myDatabase.expenses)):
-        print(type(myDatabase.expenses[i].date))
+        print(type(myDatabase.expenses[i].amount))
 
     # myDatabase.sort_expenses_date()
     # dates = []
@@ -80,11 +80,14 @@ def new_expense(myDatabase):
 
     #Enter Button
     def exp_entry():
-        new_expense = Expense(amount_entry_field.get(), category_drop.get(), date_entry.get_date(), description_entry_field.get('1.0', END))
-        myDatabase.expenses.append(new_expense.convert_date())
+        new_expense = Expense(round(float(amount_entry_field.get()), 2), category_drop.get(), date_entry.get_date(), description_entry_field.get('1.0', END))
+        new_expense.date_string_to_datetime()
+        myDatabase.expenses.append(new_expense)
         window_new_expense.destroy()
     enter_button = Button(window_new_expense, text="Enter", command=exp_entry)
 
+    exit_button = Button(window_new_expense, text="Exit", command=window_new_expense.destroy)
+    exit_button.grid(row=5, column=1)
     #DISPLAYING BUTTONS/FIELDS ON THE SCREEN
     category_drop_label.grid(row=0, column=0)
     category_drop.grid(row=0,column=1)
@@ -135,10 +138,10 @@ def choose_expense(myDatabase):
 
 
     for i in range(len(header_list)):
-        print(i)
+
 
         if i == 0:
-            print("Amt")
+
             my_width = 10 #Amount width
             header_sort_button = Button(window_choose_expense, text=header_list[i],
                                         command=lambda: push_amount_button(myDatabase),
@@ -149,7 +152,7 @@ def choose_expense(myDatabase):
                                         command=lambda: push_category_button(myDatabase),
                                         width=my_width)
         elif i == 2:
-            my_width = 10# Date Width
+            my_width = 18# Date Width
             header_sort_button = Button(window_choose_expense, text=header_list[i],
                                         command=lambda: push_date_button(myDatabase),
                                         width=my_width)
@@ -163,13 +166,13 @@ def choose_expense(myDatabase):
 
 
 
-    print(i)
+
     #Defining the large list menu to select the expense
     expense_choice = StringVar()
     expense_strings = []
     expense_menu = Listbox(window_choose_expense, width=121, font=('Courier New', 11),height=len(myDatabase.expenses))
     for i in range(len(myDatabase.expenses)):
-        expense_strings.append(str(myDatabase.expenses[i]))
+        expense_strings.append(myDatabase.expenses[i].get_list_string())
         expense_menu.insert(i, expense_strings[i])
     expense_menu.select_set(0)
 
@@ -224,8 +227,7 @@ def edit_expense(myDatabase, expense, chosen_expense_index):
     description_entry_field.insert(INSERT, expense.description)
 
     # Date Entry Widget for the date
-    date_list = expense.date.split("/")
-    date_entry = Calendar(window_edit_expense, selectmode="day", year=int(date_list[2]), month=int(date_list[0]), day=int(date_list[1]))
+    date_entry = Calendar(window_edit_expense, selectmode="day", year=expense.date.year, month=expense.date.month, day=expense.date.day)
 
     # Enter Button
     def exp_entry():
@@ -243,6 +245,7 @@ def edit_expense(myDatabase, expense, chosen_expense_index):
         choose_expense(myDatabase)
     delete_button = Button(window_edit_expense, text="DELETE", command=lambda: push_delete_button(myDatabase))
 
+
     # DISPLAYING BUTTONS/FIELDS ON THE SCREEN
     category_drop_label.grid(row=0, column=0)
     category_drop.grid(row=0, column=1)
@@ -253,6 +256,7 @@ def edit_expense(myDatabase, expense, chosen_expense_index):
     description_entry_field.grid(row=4, columnspan=2)
     enter_button.grid(row=5,column=0)
     delete_button.grid(row=5,column=1)
+
 
 def display_expenses(myDatabase):
     window_display_expenses = Tk()
@@ -304,13 +308,18 @@ def new_category(myDatabase):
     limit_field.grid(row=1,column=1)
     enter_button.grid(row=2)
 
+    exit_button = Button(window_new_category, text="Exit", command=window_new_category.destroy)
+
     #displaying current categories
     cat_header = Label(window_new_category, text="Current Categories:")
     cat_header.grid(row=2,column=1)
+    last_row = 3
     for i in range(len(myDatabase.categories)):
         category_name = myDatabase.categories[i]
         cat_label = Label(window_new_category, text=category_name)
         cat_label.grid(row=i+3,column=1)
+        last_row += 1
+    exit_button.grid(row=last_row, column=0)
 
 def choose_category(myDatabase):
     #setting up the basic window
@@ -398,13 +407,116 @@ def edit_category(myDatabase, chosen_category_index):
 
 
 #The category tally function is be used in the view month function for each category
-def category_tally(myDatabase, month, year, category):
+def tally_category(myDatabase, month, year, category):
     total = 0.0
     for i in range(len(myDatabase.expenses)):
-        if str(myDatabase.expenses[i].category) == str(category) and str(myDatabase.expenses[i].date[0]) == str(month):
+        if str(myDatabase.expenses[i].category) == str(category) and str(myDatabase.expenses[i].date.month) == str(month):
             total += float(myDatabase.expenses[i].amount)
-    total_string = round(total, 2)
-    return total_string
+    return total
+
+def tally_month(myDatabase, month, year):
+    # First we count up the total expenses for the month to be used for percentages
+    total = 0.0
+    for i in range(len(myDatabase.expenses)):
+        if myDatabase.expenses[i].date.month == month:
+            total += float(myDatabase.expenses[i].amount)
+
+    if total == 0:
+        return -1
+    return total
+
+def view_month(myDatabase):
+    #initializing date and timedelta object
+    global display_date
+    display_date = datetime.datetime.today()
+
+
+    #basic window setup
+    window_view_month = Tk()
+    window_view_month.title("View Month")
+    window_view_month.iconbitmap('icon_new_expense.ico')
+    window_view_month.geometry("400x400")
+
+    # label for the month label that goes on top between the change_month buttons
+    month_label = Label(window_view_month, width=10,text=number_to_month(display_date.month))
+
+    #defining the labels for each column
+    header_list = ["Category", "Spent this month", "Limit","Percentage"]
+    for i in range(len(header_list)):
+        header_string = header_list[i]
+        header_label = Label(window_view_month, text=header_string)
+        header_label.grid(row=1,column=i+1)
+
+
+    #function to display the current month
+    def display_month():
+        month_label.config(text=number_to_month(display_date.month))
+        month_label.update()
+
+        #First we count up the total expenses for the month to be used for percentages
+        category_count = 0
+
+        for i in range(len(myDatabase.categories)):
+            # defining the identifying label for each row to say what category it is
+            category_label = Label(window_view_month, text=str(myDatabase.categories[i]) + ":",width=10)
+
+            # defining the label that displays the cumulative expenses for that month for that category
+            cat_tally = tally_category(myDatabase, display_date.month, display_date.year, myDatabase.categories[i])
+            cat_tally_label = Label(window_view_month,text="$" + str(cat_tally),width=15)
+
+            month_tally = tally_month(myDatabase, display_date.month, display_date.year)
+
+            # defining the label that displays the limit for each category
+            limit_string = "$" + str(myDatabase.categories[i].limit)
+            if limit_string != '':
+                limit_label = Label(window_view_month,text=limit_string,width=15)
+            else:
+                limit_label = Label(window_view_month,text='',width=15)
+
+            # defining the label that will display the percentage of each category
+            percentage = (float(cat_tally) / month_tally) * 100
+            percentage_label = Label(window_view_month, text=str(round(percentage, 1)) + "%",width=10)
+
+            # displaying all previous labels on the screen
+            category_label.grid(row=i+2,column=1)
+            cat_tally_label.grid(row=i+2,column=2)
+            limit_label.grid(row=i+2, column=3)
+            percentage_label.grid(row=i+2,column=4)
+
+            #incrementing category count which will be used to place the 'Total: ' row under the bottom category row
+            category_count += 1
+
+        total_label = Label(window_view_month, width=20, text="Total Spent: $" + str(tally_month(myDatabase, display_date.month, display_date.year)))
+        total_label.grid(row=category_count + 2, columnspan=5)
+
+    # defining the buttons and commands for those buttons that will be used to change the month that is displayed
+    def next():
+        next_month()
+        display_month()
+
+    def prev():
+        prev_month()
+        display_month()
+
+    next_button = Button(window_view_month, text = ">", command=next)
+    prev_button = Button(window_view_month, text = "<", command=prev)
+
+    #displaying things on screen
+    display_month()
+    prev_button.grid(row=0,column=2)
+    month_label.grid(row=0,column=2,columnspan=2)
+    next_button.grid(row=0,column=3)
+
+#Defining functions to be used for buttons (I know using global variables is bad but I couldn't figure it out)
+def next_month():
+    global display_date
+    one_day = timedelta(days=1)
+    display_date += one_day *30
+
+def prev_month():
+    global display_date
+    one_day = timedelta(days=1)
+    display_date -= one_day * 30
 
 #used in the view month category (there may already be something like this built in somewhere *shrug*)
 def number_to_month(number):
@@ -435,91 +547,3 @@ def number_to_month(number):
     else:
         return 'n2m conversion error'
 
-#Defining functions to be used for buttons (I know using global variables is bad but I couldn't figure it out)
-def next_month():
-    global display_date
-    one_day = timedelta(days=1)
-    display_date += one_day *30
-
-def prev_month():
-    global display_date
-    one_day = timedelta(days=1)
-    display_date -= one_day * 30
-
-def view_month(myDatabase):
-    #initializing date and timedelta object
-    global display_date
-    display_date = datetime.today()
-
-
-    #basic window setup
-    window_view_month = Tk()
-    window_view_month.title("View Month")
-    window_view_month.iconbitmap('icon_new_expense.ico')
-    window_view_month.geometry("400x400")
-
-    # label for the month header
-    month_label = Label(window_view_month, width=10,text=number_to_month(display_date.month))
-
-    def next():
-        next_month()
-        display_month()
-
-    def prev():
-        prev_month()
-        display_month()
-
-    header_list = ["Category", "Spent this month", "Limit","Percentage"]
-    for i in range(len(header_list)):
-        header_string = header_list[i]
-        header_label = Label(window_view_month, text=header_string)
-        header_label.grid(row=1,column=i+1)
-
-    #function to display the current month
-    def display_month():
-        month_label.config(text=number_to_month(display_date.month))
-        month_label.update()
-
-        #First we count up the total expenses for the month to be used for percentages
-        category_count = 0
-        total = 0.0
-        for i in range(len(myDatabase.expenses)):
-            total += float(myDatabase.expenses[i].amount)
-        total_header = Label(window_view_month, text="Total Spent: $" + str(round(total, 2)))
-
-
-        for i in range(len(myDatabase.categories)):
-            category_label = Label(window_view_month, text=str(myDatabase.categories[i]) + ":",width=10)
-            tally = category_tally(myDatabase, display_date.month, display_date.year, myDatabase.categories[i])
-            tally_string = "$" + str(tally)
-            tally_label = Label(window_view_month,text=tally_string,width=15)
-            limit_string = "$" + str(myDatabase.categories[i].limit)
-            if limit_string != '':
-                limit_label = Label(window_view_month,text=limit_string,width=15)
-            else:
-                limit_label = Label(window_view_month,text='',width=15)
-
-            percentage = (float(tally) / total) * 100
-            percentage_label = Label(window_view_month, text=str(round(percentage, 1)) + "%",width=10)
-
-
-            category_label.grid(row=i+2,column=1)
-            tally_label.grid(row=i+2,column=2)
-            limit_label.grid(row=i+2, column=3)
-            percentage_label.grid(row=i+2,column=4)
-
-            category_count += 1
-
-        total_header.grid(row=category_count + 2, columnspan=5)
-
-
-
-    next_button = Button(window_view_month, text = ">", command=next)
-    prev_button = Button(window_view_month, text = "<", command=prev)
-
-
-    #displaying things on screen
-    display_month()
-    prev_button.grid(row=0,column=0)
-    month_label.grid(row=0,column=1,columnspan=2)
-    next_button.grid(row=0,column=3)
